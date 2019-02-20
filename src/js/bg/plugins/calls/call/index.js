@@ -115,6 +115,7 @@ class Call {
                 message: `${this.state.number}: ${this.state.displayName}`,
                 number: this.state.number,
                 title: this.translations.invite,
+                call: this.state,
             })
 
             this.ringtone.play()
