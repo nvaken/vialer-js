@@ -254,7 +254,8 @@ class CallSIP extends Call {
             this.pc.getReceivers().forEach((receiver) => this.remoteStream.addTrack(receiver.track))
             this.app.media.remoteVideo.srcObject = this.remoteStream
 
-            // @NOTE Disabled the following, this caused major issues when accepting a call. `sender.track` was always null, causing fatal errors.
+            // @NOTE Disabled the following, this caused major issues when accepting a call.
+            // `sender.track` was always null, causing fatal errors.
             // this.pc.getSenders().forEach((sender) => this.localStream.addTrack(sender.track))
             // this.app.media.localVideo.srcObject = this.localStream
         })

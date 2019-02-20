@@ -302,14 +302,14 @@ class PluginUI extends Plugin {
                 this.app.on('bg:calls:call_terminate', terminateCallback);
                 this.app.on('bg:calls:call_accept', terminateCallback);
 
+                // Callback for the buttons
                 browser.notifications.onButtonClicked.addListener((id, buttonIndex) => {
-                    if (id == notificationId) {
+                    if (id === notificationId) {
                         switch (buttonIndex) {
                             // Accept call
                             case 0:
                                 this.app.emit('bg:calls:call_accept', { callId: call.id }, true)
                                 break;
-                        
                             // Decline call
                             case 1:
                                 this.app.emit('bg:calls:call_terminate', { callId: call.id }, true)
@@ -322,17 +322,10 @@ class PluginUI extends Plugin {
             // Let's check if the browser supports notifications
             if (!('Notification' in window)) {
                 alert('This browser does not support desktop notification');
-            }
-
-            // Let's check whether notification permissions have already been granted
-            else if (Notification.permission === 'granted') {
-                // If it's okay let's create a notification
+            } else if (Notification.permission === 'granted') {
                 browser.notifications.create(notificationId, notificationOptions);
-            }
-
-            // Otherwise, we need to ask the user for permission
-            else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(function (permission) {
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(function(permission) {
                     // If the user accepts, let's create a notification
                     if (permission === 'granted') {
                         browser.notifications.create(notificationId, notificationOptions);
