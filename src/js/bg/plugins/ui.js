@@ -277,18 +277,46 @@ class PluginUI extends Plugin {
                 iconUrl: 'img/logo-128.png',
                 title: title,
                 message: message,
-                requireInteraction: true,
+                requireInteraction: false,
             };
 
+            var notificationId = 'c2d';
             if (call) {
-                // notificationOptions.buttons = [
-                //     {
-                //         title: 'Accept call',
-                //     },
-                //     {
-                //         title: 'Decline call',
-                //     },
-                // ];
+                notificationId = call.id;
+                notificationOptions.buttons = [
+                    {
+                        title: 'Accept call',
+                    },
+                    {
+                        title: 'Decline call',
+                    },
+                ];
+                notificationOptions.requireInteraction = true;
+
+                // Make sure we remove the notification when we've received ending events
+                let terminateCallback = () => {
+                    browser.notifications.clear(notificationId);
+                }
+                this.app.on('bg:calls:call_rejected', terminateCallback);
+                this.app.on('bg:calls:call_ended', terminateCallback);
+                this.app.on('bg:calls:call_terminate', terminateCallback);
+                this.app.on('bg:calls:call_accept', terminateCallback);
+
+                browser.notifications.onButtonClicked.addListener((id, buttonIndex) => {
+                    if (id == notificationId) {
+                        switch (buttonIndex) {
+                            // Accept call
+                            case 0:
+                                this.app.emit('bg:calls:call_accept', { callId: call.id }, true)
+                                break;
+                        
+                            // Decline call
+                            case 1:
+                                this.app.emit('bg:calls:call_terminate', { callId: call.id }, true)
+                                break;
+                        }
+                    }
+                })
             }
 
             // Let's check if the browser supports notifications
@@ -299,7 +327,7 @@ class PluginUI extends Plugin {
             // Let's check whether notification permissions have already been granted
             else if (Notification.permission === 'granted') {
                 // If it's okay let's create a notification
-                browser.notifications.create('incoming_call', notificationOptions);
+                browser.notifications.create(notificationId, notificationOptions);
             }
 
             // Otherwise, we need to ask the user for permission
@@ -307,26 +335,10 @@ class PluginUI extends Plugin {
                 Notification.requestPermission().then(function (permission) {
                     // If the user accepts, let's create a notification
                     if (permission === 'granted') {
-                        browser.notifications.create('incoming_call', notificationOptions);
+                        browser.notifications.create(notificationId, notificationOptions);
                     }
                 });
             }
-
-            // browser.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
-            //     if (notificationId == 'incoming_call') {
-            //         switch (buttonIndex) {
-            //             // Accept call
-            //             case 0:
-            //                 this.app.emit('bg:calls:call_accept', { callId: call.id })
-            //                 break;
-                    
-            //             // Decline call
-            //             case 1:
-            //                 this.app.emit('bg:calls:call_terminate', { callId: call.id })
-            //                 break;
-            //         }
-            //     }
-            // })
 
 
             // options.iconUrl = browser.runtime.getURL(options.iconUrl)
